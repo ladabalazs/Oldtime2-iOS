@@ -1,0 +1,47 @@
+name: Oldtime2 iOS unsigned compile
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'clientsource/**'
+      - 'ios/**'
+      - 'ios_compat/**'
+      - 'cmake/**'
+      - 'CMakeLists*'
+      - 'scripts/**'
+      - '.github/workflows/ios-unsigned-build.yml'
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate source prerequisites
+        run: |
+          mkdir -p ci-logs
+          if [ ! -f CMakeLists.iOS.txt ] || [ ! -d clientsource ]; then
+            echo "::error::Full iOS client source is not yet in the repository." | tee ci-logs/prerequisites.log
+            exit 1
+          fi
+      - name: Build unsigned iOS app
+        id: compile
+        if: success()
+        continue-on-error: true
+        run: bash scripts/build_ios_ci.sh
+      - name: Upload compiler logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oldtime2-ios-logs
+          path: ci-logs/**
+          if-no-files-found: ignore
+      - name: Upload unsigned build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oldtime2-ios-unsigned
+          path: build-ios/Release-iphoneos/**
+          if-no-files-found: ignore
+      - name: Fail if compile failed
+        if: steps.compile.outcome == 'failure'
+        run: exit 1
