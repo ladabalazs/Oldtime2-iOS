@@ -1,0 +1,13 @@
+# Local build output and private credentials
+build-ios/
+ci-logs/
+.DS_Store
+*.p12
+*.mobileprovision
+*.pem
+*.key
+*.p8
+root_payload_key.bin
+pack_signing_private.xml
+.env
+.env.*
